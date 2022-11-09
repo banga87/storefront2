@@ -1,10 +1,14 @@
 from .models import Product, Collection
+from django.db.models import Count
 from rest_framework import serializers
 from decimal import Decimal
 
-class CollectionSeralizer(serializers.Serializer):
-    id = serializers.IntegerField()
-    title = serializers.CharField(max_length=255)
+class CollectionSeralizer(serializers.ModelSerializer):
+    class Meta:
+        model = Collection
+        fields = ['id', 'title', 'products_count']
+    products_count = serializers.IntegerField()
+
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
