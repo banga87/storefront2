@@ -45,32 +45,34 @@ class ProductDetails(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['GET', 'POST'])
-def collections_list(request):
-    if request.method == 'GET':
+class CollectionList(APIView):
+    def get(self, request):
         queryset = Collection.objects.annotate(products_count=Count('products')).all()
         serializer = CollectionSeralizer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
-    elif request.method == 'POST':
+
+    def post(self, request):
         serializer = CollectionSeralizer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def collection_details(request, pk):
-    collection = get_object_or_404(
-        Collection.objects.annotate(products_count=Count('products')).all(), pk=pk)
-    if request.method == 'GET':
+class CollectionDetails(APIView):
+    def get(self, request, pk):
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count('products')).all(), pk=pk)
         serializer = CollectionSeralizer(collection)
         return Response(serializer.data)
-    elif request.method == 'PUT':
+
+    def put(self, request, pk):
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count('products')).all(), pk=pk)
         serializer = CollectionSeralizer(collection, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    elif request.method == 'DELETE':
+
+    def delete(self, request, pk):
+        collection = get_object_or_404(Collection.objects.annotate(products_count=Count('products')).all(), pk=pk)
         if collection.products.count() > 0:
             return Response(
                 {'error': 'Collection cannot be deleted because a product is associated with it.'},
@@ -78,3 +80,4 @@ def collection_details(request, pk):
             )
         collection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
