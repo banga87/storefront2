@@ -1,6 +1,6 @@
 from django.urls import path
-from rest_framework.routers import SimpleRouter, DefaultRouter
 from rest_framework_nested import routers
+from rest_framework.routers import SimpleRouter, DefaultRouter
 from . import views
 
 router = routers.DefaultRouter()
