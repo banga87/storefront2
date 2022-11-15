@@ -5,9 +5,9 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from .filters import ProductFilter
-from .models import Product, Collection, OrderItem, Review
+from .models import Product, Collection, OrderItem, Review, Cart
 from .pagination import DefaultPagination
-from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer
+from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer
 
 
 """
@@ -53,6 +53,9 @@ class CollectionViewSet(ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+"""
+Review Views
+"""
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
 
@@ -62,3 +65,12 @@ class ReviewViewSet(ModelViewSet):
     # accesses the product_pk from the URL and enables us to access in our serializer.
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
+
+
+"""
+Cart Views
+"""
+class CartViewSet(ModelViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
