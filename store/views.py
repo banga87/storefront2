@@ -72,13 +72,7 @@ class ReviewViewSet(ModelViewSet):
 Cart Views
 """
 class CartViewSet(CreateModelMixin, GenericViewSet, ListModelMixin, RetrieveModelMixin):
-    queryset = Cart.objects.all()
+    queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = CartSerializer
 
 
-"""
-CartItem Views
-"""
-class CartItemViewSet(ModelViewSet):
-    queryset = CartItem.objects.all()
-    serializer_class = CartItemSerializer
