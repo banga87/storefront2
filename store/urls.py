@@ -7,17 +7,15 @@ router.register('collections', views.CollectionViewSet)
 router.register('carts', views.CartViewSet)
 
 
+# 'cart' provides us with 'cart_pk' as a reference in our views.
+carts_router = routers.NestedDefaultRouter(router, 'carts', lookup='cart')
+carts_router.register('items', views.CartItemViewSet, basename='cart-items')
+
+
+# 'product' provides us with 'product_pk' as reference in our views.
 products_router = routers.NestedSimpleRouter(router, 'products', lookup='product')
 products_router.register('reviews', views.ReviewViewSet, basename='product-reviews')
 
 
-# URLConf
-# urlpatterns = [
-#     # path('products/', views.ProductList.as_view()),
-#     # path('products/<int:pk>', views.ProductDetails.as_view()),
-#     # path('collections/', views.CollectionList.as_view()),
-#     # path('collections/<int:pk>', views.CollectionDetails.as_view(), name='collection-detail')
-# ]
-
-urlpatterns = router.urls + products_router.urls
+urlpatterns = router.urls + products_router.urls + carts_router.urls
 

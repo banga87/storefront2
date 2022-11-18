@@ -2,13 +2,13 @@ from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from .filters import ProductFilter
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem
 from .pagination import DefaultPagination
-from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer
+from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer, CartItemSerializer
 
 
 """
@@ -60,10 +60,11 @@ Review Views
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
 
+    # Overriden to filter by the product_id stored in the url
     def get_queryset(self):
         return Review.objects.filter(product_id=self.kwargs['product_pk'])
 
-    # accesses the product_pk from the URL and enables us to access in our serializer.
+    # Accesses the product_pk from the URL and enables us to access in our serializer.
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
 
@@ -71,8 +72,26 @@ class ReviewViewSet(ModelViewSet):
 """
 Cart Views
 """
-class CartViewSet(CreateModelMixin, GenericViewSet, ListModelMixin, RetrieveModelMixin):
+class CartViewSet(CreateModelMixin,
+                  RetrieveModelMixin,
+                  DestroyModelMixin,
+                  ListModelMixin,
+                  GenericViewSet):
     queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = CartSerializer
 
 
+"""
+CartItem Views
+"""
+class CartItemViewSet(ModelViewSet):
+    serializer_class = CartItemSerializer
+
+    # Overriden to filter by the cart_id stored in the URL
+    def get_queryset(self):
+        return CartItem.objects. \
+            filter(cart_id=self.kwargs['cart_pk']). \
+            select_related('product')
+
+    def get_serializer_context(self):
+        return {'cart_id': self.kwargs['cart_pk']}
