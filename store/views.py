@@ -8,8 +8,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from .filters import ProductFilter
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem
 from .pagination import DefaultPagination
-from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer, CartItemSerializer
-
+from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer
 
 """
 Product Views
@@ -85,9 +84,18 @@ class CartViewSet(CreateModelMixin,
 CartItem Views
 """
 class CartItemViewSet(ModelViewSet):
-    serializer_class = CartItemSerializer
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return AddCartItemSerializer
+        elif self.request.method == 'PATCH':
+            return UpdateCartItemSerializer
+        return CartItemSerializer
 
     # Overriden to filter by the cart_id stored in the URL
+    # Optimised with select_related because each new product 
+    # saw an additional query to the database.
     def get_queryset(self):
         return CartItem.objects. \
             filter(cart_id=self.kwargs['cart_pk']). \
