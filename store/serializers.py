@@ -1,4 +1,5 @@
 from decimal import Decimal
+from django.db import transaction
 from rest_framework import serializers
 from .models import Product, Collection, Review, Cart, CartItem, Customer, Order, OrderItem
 
@@ -58,7 +59,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     items = CartItemSerializer(many=True, read_only=True)
-    total_price = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField(method_name='get_total_price')
 
     # can't access 'total_price' from here. Must calculate again
     def get_total_price(self, cart: Cart):
@@ -119,6 +120,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    # SimpleProductSerializer used so we show only relevant data
     product = SimpleProductSerializer()
 
     class Meta:
@@ -127,8 +129,38 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    # many=True because there can be many items.
     items = OrderItemSerializer(many=True)
 
     class Meta:
         model = Order
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    cart_id = serializers.UUIDField()
+
+    def save(self, **kwargs):
+        with transaction.atomic():
+            cart_id = self.validated_data['cart_id']
+            user_id = self.context['user_id']
+            (customer, created) = Customer.objects.get_or_create(user_id=user_id)
+            order = Order.objects.create(customer=customer)
+            cart_items = CartItem.objects.select_related('product').filter(cart_id=cart_id)
+
+            order_items = [
+                OrderItem(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    unit_price=item.product.unit_price
+                    ) for item in cart_items
+            ]
+
+            OrderItem.objects.bulk_create(order_items)
+            Cart.objects.filter(pk=cart_id).delete()
+
+
+
+
+
