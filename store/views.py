@@ -11,7 +11,7 @@ from .filters import ProductFilter
 from .models import Product, Collection, OrderItem, Review, Cart, CartItem, Customer, Order
 from .pagination import DefaultPagination
 from .permissions import IsAdminOrReadOnly
-from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, CreateOrderSerializer, OrderSerializer
+from .serializers import ProductSerializer, CollectionSeralizer, ReviewSerializer, CartSerializer, CartItemSerializer, AddCartItemSerializer, UpdateCartItemSerializer, CustomerSerializer, CreateOrderSerializer, OrderSerializer, UpdateOrderSerializer
 
 """
 Product Views
@@ -156,6 +156,8 @@ class OrderViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateOrderSerializer
+        elif self.request.method == 'PATCH':
+            return UpdateOrderSerializer
         return OrderSerializer
 
     # Used to pull queryset specific to Customer vs Staff
