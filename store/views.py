@@ -138,8 +138,15 @@ Orders Views
 class OrderViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_context(self):
-        return {'user_id': self.request.user.id}
+    def create(self, request, *args, **kwargs):
+        serializer = CreateOrderSerializer(
+            data=request.data,
+            context={'user_id':self.request.user.id}
+            )
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
